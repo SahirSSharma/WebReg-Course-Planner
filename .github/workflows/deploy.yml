@@ -1,9 +1,12 @@
 name: Deploy site to GitHub Pages
 
-# Every push to main rebuilds site/ from source and publishes it live (~1 min).
+# Publishes TWO versions of the site in one Pages deployment:
+#   main    -> production  https://sahirssharma.github.io/WebReg-Course-Planner/
+#   staging -> preview      .../WebReg-Course-Planner/preview/   (test before users see it)
+# A push to either branch rebuilds both from their latest commit and redeploys.
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   workflow_dispatch:
 
 permissions:
@@ -11,7 +14,6 @@ permissions:
   pages: write
   id-token: write
 
-# Never run two deploys at once; let the newest push win.
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -23,15 +25,37 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main (production)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: prod
+      - name: Checkout staging (preview)
+        uses: actions/checkout@v4
+        with:
+          ref: staging
+          path: preview
+        continue-on-error: true
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Build static site
-        run: python3 scripts/build_site.py
+      - name: Build production (root)
+        run: |
+          cd prod && python3 scripts/build_site.py
+          mkdir -p "$GITHUB_WORKSPACE/_site"
+          cp -a site/. "$GITHUB_WORKSPACE/_site/"
+      - name: Build preview (/preview)
+        run: |
+          if [ -f preview/scripts/build_site.py ]; then
+            cd preview && python3 scripts/build_site.py
+            mkdir -p "$GITHUB_WORKSPACE/_site/preview"
+            cp -a site/. "$GITHUB_WORKSPACE/_site/preview/"
+          else
+            echo "staging branch not present yet — skipping preview build"
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _site
       - id: deploy
         uses: actions/deploy-pages@v4
