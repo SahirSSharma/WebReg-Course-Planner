@@ -12,6 +12,7 @@ library — no third-party packages, so CI needs no pip install:
 
 Run locally to preview, or let .github/workflows/deploy.yml run it on push.
 """
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -26,16 +27,27 @@ def run(script):
     subprocess.run([PY, str(ROOT / script)], cwd=ROOT, check=True)
 
 
+def _ver(path):
+    """Short content hash for cache-busting — changes only when the file does."""
+    return hashlib.md5(Path(path).read_bytes()).hexdigest()[:8]
+
+
 def regen_index():
+    # Cache-bust CSS/JS: append a content hash so browsers always fetch the
+    # current version after an update (stale CSS was rendering the tip corner
+    # unstyled). Unchanged files keep the same hash and stay cacheable.
+    css_v = _ver(ROOT / "static/css/webreg.css")
+    js_v = _ver(ROOT / "static/js/webreg.js")
+    ldb_v = _ver(ROOT / "site/js/localdb.js")
     src = (ROOT / "templates" / "index.html").read_text()
-    src = src.replace("/static/css/webreg.css", "css/webreg.css")
+    src = src.replace("/static/css/webreg.css", f"css/webreg.css?v={css_v}")
     src = src.replace("/static/img/", "img/")
     src = src.replace(
         '<script src="/static/js/webreg.js"></script>',
-        '<script src="js/localdb.js"></script>\n'
-        '<script src="js/webreg.js"></script>')
+        f'<script src="js/localdb.js?v={ldb_v}"></script>\n'
+        f'<script src="js/webreg.js?v={js_v}"></script>')
     (ROOT / "site" / "index.html").write_text(src)
-    print("→ site/index.html regenerated")
+    print("→ site/index.html regenerated (cache-busted css/js)")
 
 
 def copy_images():
