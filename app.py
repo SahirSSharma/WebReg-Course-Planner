@@ -80,6 +80,12 @@ def _apply_simple_q(q_text, where, args, conn):
     if not toks:
         return
     subjects = {r["code"].upper() for r in conn.execute("SELECT code FROM subjects")}
+    # split a glued subject+number, "CSE11" -> ["CSE","11"], when the letters
+    # are a real subject (so title words like "data" are left alone)
+    if len(toks) == 1:
+        m = re.match(r"^([A-Za-z]{2,6})(\d+[A-Za-z]{0,2})$", toks[0])
+        if m and m.group(1).upper() in subjects:
+            toks = [m.group(1), m.group(2)]
     if len(toks) == 1:
         t = toks[0]
         if t.upper() in subjects:
