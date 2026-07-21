@@ -134,13 +134,24 @@ def main():
         except Exception:
             return False
 
-    def looks_logged_in(page):
+    def looks_logged_in(ctx, page):
+        """True only once SAP has issued a real session.
+
+        The Fiori URL alone is NOT proof — sis.ucsd.edu bounces through
+        tss.ucsd.edu/fiori BEFORE auth, which used to false-positive and
+        yank the page away mid-login. Require a SAP_SESSIONID cookie on
+        tss.ucsd.edu and that we're not sitting on an SSO/Duo page."""
         try:
             url = page.url
-            if "tss.ucsd.edu" in url and "/fiori" in url:
-                return True
-            return page.query_selector(
-                "#shell-header, .sapUshellShell") is not None
+            if ("a.ucsd.edu" in url or "duosecurity" in url
+                    or "shibboleth" in url.lower()):
+                return False
+            if page.query_selector("input[type=password]") is not None:
+                return False
+            cookies = ctx.cookies("https://tss.ucsd.edu")
+            has_sap = any(c["name"].startswith("SAP_SESSIONID")
+                          for c in cookies)
+            return has_sap and "tss.ucsd.edu" in url
         except Exception:
             return False
 
@@ -185,8 +196,8 @@ def main():
             while not state["logged_in"] and waited < args.login_timeout:
                 if not ctx.pages:
                     break
-                pg = ctx.pages[0]
-                if looks_logged_in(pg):
+                pg = ctx.pages[-1]
+                if looks_logged_in(ctx, pg):
                     state["logged_in"] = True
                     break
                 pg.wait_for_timeout(2000)
@@ -197,11 +208,15 @@ def main():
             pass  # window closed mid-login
 
         if state["logged_in"] and ctx.pages:
-            page = ctx.pages[0]
+            page = ctx.pages[-1]
             print("\nLogin detected — saving session to tss/state.json")
             save_state(ctx)
 
             # ---- Phase 2: discovery + jump to Schedule of Classes ------
+            try:  # let the post-SAML redirect dance settle first
+                page.wait_for_load_state("networkidle", timeout=20000)
+            except Exception:
+                pass
             print("Fetching discovery endpoints (start_up + OData catalog)…")
             run_discovery(page)
             try:
@@ -229,14 +244,17 @@ def main():
             print("\nLogin was not detected (window closed or timed out).")
 
         # ---- Phase 3: keep recording + re-saving cookies until close ----
+        # Exit ONLY when every tab is closed (or Ctrl-C) — a single tab
+        # closing or navigating must not end the capture.
         try:
             while ctx.pages:
-                ctx.pages[0].wait_for_timeout(3000)
+                try:
+                    ctx.pages[-1].wait_for_timeout(3000)
+                except Exception:
+                    continue  # that tab went away; re-check remaining tabs
                 save_state(ctx)
         except KeyboardInterrupt:
             print("\nCtrl-C — wrapping up.")
-        except Exception:
-            pass  # user closed the window: that's the normal way to finish
 
         save_state(ctx)  # best-effort final save
         try:
