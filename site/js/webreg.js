@@ -190,6 +190,60 @@ function enterTerm(code) {
   $("#chevrons").hidden = false;
   $("#term-switch").value = code;
   refreshSchedule();
+  refreshScheduleList();
+}
+
+/* ---------------- named-schedule manager (My schedule: dropdown) */
+
+async function refreshScheduleList() {
+  let data;
+  try { data = await api("/api/schedules"); }
+  catch (e) { return; }   // older/Flask backend without multi-schedule support
+  const sel = $("#sched-name");
+  if (!sel) return;
+  sel.innerHTML = "";
+  const mine = document.createElement("optgroup");
+  mine.label = "My schedules";
+  for (const n of data.names) mine.appendChild(new Option(n, "s:" + n, false, n === data.active));
+  sel.appendChild(mine);
+  const acts = document.createElement("optgroup");
+  acts.label = "———";
+  acts.appendChild(new Option("＋  New schedule…", "__new"));
+  acts.appendChild(new Option("⧉  Duplicate this one…", "__copy"));
+  acts.appendChild(new Option("✎  Rename this one…", "__rename"));
+  if (data.names.length > 1) acts.appendChild(new Option("🗑  Delete this one", "__delete"));
+  sel.appendChild(acts);
+  sel.dataset.active = data.active;
+}
+
+async function onSchedNameChange() {
+  const sel = $("#sched-name");
+  const v = sel.value;
+  const active = sel.dataset.active || "";
+  try {
+    if (v.startsWith("s:")) {
+      if (v.slice(2) !== active) await post("/api/schedules/activate", { name: v.slice(2) });
+    } else if (v === "__new") {
+      const n = (prompt("Name your new schedule:", "Plan B") || "").trim();
+      if (!n) return refreshScheduleList();
+      await post("/api/schedules/create", { name: n });
+    } else if (v === "__copy") {
+      const n = (prompt("Name for the copy:", active + " copy") || "").trim();
+      if (!n) return refreshScheduleList();
+      await post("/api/schedules/copy", { name: n });
+    } else if (v === "__rename") {
+      const n = (prompt("Rename “" + active + "” to:", active) || "").trim();
+      if (!n) return refreshScheduleList();
+      await post("/api/schedules/rename", { name: n });
+    } else if (v === "__delete") {
+      if (!confirm("Delete the schedule “" + active + "”? This can’t be undone.")) return refreshScheduleList();
+      await post("/api/schedules/delete", {});
+    }
+  } catch (e) {
+    alert(e.message || "Couldn’t update schedules.");
+  }
+  await refreshSchedule();
+  await refreshScheduleList();
 }
 
 function switchTerm(code) {
@@ -696,6 +750,7 @@ function wireScheduleChrome() {
   }));
   $("#lnk-print").addEventListener("click", () => window.print());
   $("#lnk-appt").addEventListener("click", openAppointment);
+  $("#sched-name").addEventListener("change", onSchedNameChange);
   $("#chev-up").addEventListener("click", () =>
     $(".search-panel").scrollIntoView({ behavior: "smooth" }));
   $("#chev-down").addEventListener("click", () =>
