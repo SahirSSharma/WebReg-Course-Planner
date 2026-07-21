@@ -4,7 +4,7 @@
 Pixel-faithful rebuild of classic UCSD WebReg as a localhost **planning** tool (no live registration), backed by real UCSD course data. Users: Sahir first, then friends fed up with TSS.
 
 ## Architecture
-- **Flask + SQLite** (`app.py` + `data/webreg.db`, port 5060). No build step, no framework — vanilla JS/CSS replicating WebReg's classic look.
+- **Flask + SQLite** (`app.py` + `data/webreg.db`, port 5070 — 5060 is on browsers' unsafe-port blocklist, ERR_UNSAFE_PORT). No build step, no framework — vanilla JS/CSS replicating WebReg's classic look.
 - **Data layer**: everything imported into SQLite by `seed.py`; the app never calls UCSD live.
   - `scraper/soc_scraper.py` — legacy public Schedule of Classes (terms ≤ SU26). Chrome UA mandatory; patient retry/backoff around "Max Sessions Exceeded" 500s; raw HTML cached in `data/samples/` so parsing is re-runnable offline.
   - `tss/connect.py` — headed Playwright window → Sahir does SSO+Duo → storage_state saved to `tss/state.json` (git-ignored) → sniff JSON XHRs from TSS class search → dump `data/tss_raw/` → import FA26.

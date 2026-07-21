@@ -14,6 +14,7 @@ Idempotent: re-seeding a term replaces that term's catalog but keeps schedules
 (schedule items pointing at vanished sections are pruned).
 """
 import json
+import re
 import sqlite3
 import sys
 from pathlib import Path
@@ -61,6 +62,17 @@ def main():
                 cid = cur.lastrowid
                 n_courses += 1
                 for s in c.get("sections", []):
+                    days = s.get("days", "")
+                    # Exam rows (FI/MI): the scraper puts the exam date in
+                    # `code` and a weekday letter in `days`. WebReg's UI wants
+                    # the date inside the days field ("Sa 06/06/2015"), and
+                    # SOC prints Saturday as bare "S" — normalize both here.
+                    if s.get("type") in ("FI", "MI"):
+                        if days == "S":
+                            days = "Sa"
+                        date = s.get("code", "")
+                        if re.fullmatch(r"\d{1,2}/\d{1,2}/\d{2,4}", date):
+                            days = (days + " " + date).strip()
                     conn.execute(
                         "INSERT INTO sections (course_id,section_id,group_code,"
                         "meeting_type,section_code,days,time_start,time_end,"
@@ -69,7 +81,7 @@ def main():
                         " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                         (cid, s.get("section_id", ""), s.get("group", "A"),
                          s.get("type", "LE"), s.get("code", ""),
-                         s.get("days", ""), s.get("time_start", ""),
+                         days, s.get("time_start", ""),
                          s.get("time_end", ""), s.get("building", ""),
                          s.get("room", ""), s.get("instructor", ""),
                          s.get("avail"), s.get("limit"),

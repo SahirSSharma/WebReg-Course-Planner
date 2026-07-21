@@ -1,82 +1,13 @@
 [
   {
-    "code": "SA26",
-    "name": "Summer Sessions (All) 2026"
+    "code": "FA26",
+    "name": "Fall 2026",
+    "source": "tss"
   },
   {
-    "code": "SU26",
-    "name": "Summer Med School 2026"
-  },
-  {
-    "code": "S326",
-    "name": "Special Summer Session 2026"
-  },
-  {
-    "code": "S226",
-    "name": "Summer Session II 2026"
-  },
-  {
-    "code": "S126",
-    "name": "Summer Sessions I 2026"
-  },
-  {
-    "code": "SP26",
-    "name": "Spring Quarter 2026"
-  },
-  {
-    "code": "WI26",
-    "name": "Winter Quarter 2026"
-  },
-  {
-    "code": "FA25",
-    "name": "Fall Quarter 2025"
-  },
-  {
-    "code": "SA25",
-    "name": "Summer Sessions (All) 2025"
-  },
-  {
-    "code": "SU25",
-    "name": "Summer Med School 2025"
-  },
-  {
-    "code": "S325",
-    "name": "Special Summer Session 2025"
-  },
-  {
-    "code": "S225",
-    "name": "Summer Session II 2025"
-  },
-  {
-    "code": "S125",
-    "name": "Summer Sessions I 2025"
-  },
-  {
-    "code": "SP25",
-    "name": "Spring Quarter 2025"
-  },
-  {
-    "code": "WI25",
-    "name": "Winter Quarter 2025"
-  },
-  {
-    "code": "FA24",
-    "name": "Fall Quarter 2024"
-  },
-  {
-    "code": "SA24",
-    "name": "Summer Sessions (All) 2024"
-  },
-  {
-    "code": "SU24",
-    "name": "Summer Med School 2024"
-  },
-  {
-    "code": "S324",
-    "name": "Special Summer Session 2024"
-  },
-  {
-    "code": "S224",
-    "name": "Summer Session II 2024"
+    "code": "DEMO",
+    "name": "Demo (real SP15 CSE data)",
+    "source": "soc",
+    "is_default": 1
   }
 ]

@@ -9,7 +9,7 @@ Classic WebReg UI/UX, real UCSD course data (classes, professors, sections, time
 ```bash
 pip3 install -r requirements.txt
 python3 seed.py          # builds data/webreg.db from bundled/scraped UCSD data
-python3 app.py           # serves http://localhost:5060
+python3 app.py           # serves http://localhost:5070 (5060 is browser-blocked: SIP)
 ```
 
 ## Data sources

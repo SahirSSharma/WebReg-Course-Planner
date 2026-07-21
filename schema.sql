@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS schedule_items (
   status        TEXT NOT NULL DEFAULT 'enrolled',         -- enrolled | waitlisted | planned
   units         TEXT NOT NULL,
   grade_option  TEXT NOT NULL DEFAULT 'L',                -- L | P (P/NP) | S (S/U)
+  waitlist_pos  INTEGER,                                  -- position when waitlisted (ct+1 at add time)
   added_at      TEXT NOT NULL DEFAULT (datetime('now')),
   UNIQUE(schedule_id, section_pk)
 );
