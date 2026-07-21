@@ -655,6 +655,48 @@ table.confirm-table {
   margin: 0 0 20px;
 }
 .copyright-note a { color: #7a97a6; }
+
+/* ===== tip / support corner (bottom-right, collapsible) ===== */
+.tip-jar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  width: 210px;
+  background: #fff;
+  border: 1px solid #b9c6cd;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18);
+  font-size: 12px;
+  z-index: 200;
+  overflow: hidden;
+}
+.tip-bar {
+  background: linear-gradient(#0D648F, #1A719C);
+  color: #fff;
+  font-weight: bold;
+  padding: 7px 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+.tip-caret { transition: transform .15s; }
+.tip-jar.collapsed .tip-caret { transform: rotate(-90deg); }
+.tip-jar.collapsed .tip-body { display: none; }
+.tip-body { padding: 10px; text-align: center; }
+.tip-meme { max-width: 100%; border-radius: 6px; margin-bottom: 8px; display: block; }
+.tip-note { color: #555; line-height: 15px; margin-bottom: 8px; }
+.tip-qr {
+  width: 150px; max-width: 100%;
+  border: 1px solid #e2e2e2; border-radius: 8px;
+}
+.tip-zelle { margin-top: 8px; color: #333; font-size: 12px; }
+.tip-zelle b { color: #6b31b3; }   /* Zelle purple */
+@media (max-width: 640px) {
+  .tip-jar { width: 170px; right: 8px; bottom: 8px; }
+  .tip-qr { width: 120px; }
+}
 .page-footer {
   border-top: 1px solid #ccc;
   margin-top: 6px;

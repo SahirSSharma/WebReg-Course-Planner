@@ -156,6 +156,18 @@ async function init() {
   buildTimeSelects();
   wireSearch();
   wireScheduleChrome();
+  wireTipJar();
+}
+
+function wireTipJar() {
+  const jar = $("#tip-jar"), bar = $("#tip-bar");
+  if (!jar || !bar) return;
+  if (localStorage.getItem("webreg_tip_collapsed") === "1") jar.classList.add("collapsed");
+  bar.addEventListener("click", () => {
+    jar.classList.toggle("collapsed");
+    localStorage.setItem("webreg_tip_collapsed",
+      jar.classList.contains("collapsed") ? "1" : "0");
+  });
 }
 
 function buildTimeSelects() {

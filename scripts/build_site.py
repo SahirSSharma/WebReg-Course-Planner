@@ -29,6 +29,7 @@ def run(script):
 def regen_index():
     src = (ROOT / "templates" / "index.html").read_text()
     src = src.replace("/static/css/webreg.css", "css/webreg.css")
+    src = src.replace("/static/img/", "img/")
     src = src.replace(
         '<script src="/static/js/webreg.js"></script>',
         '<script src="js/localdb.js"></script>\n'
@@ -37,10 +38,23 @@ def regen_index():
     print("→ site/index.html regenerated")
 
 
+def copy_images():
+    src = ROOT / "static" / "img"
+    if not src.is_dir():
+        return
+    dst = ROOT / "site" / "img"
+    dst.mkdir(parents=True, exist_ok=True)
+    for f in src.iterdir():
+        if f.is_file():
+            shutil.copyfile(f, dst / f.name)
+    print("→ copied static/img → site/img")
+
+
 def main():
     run("seed.py")
     run("scripts/export_static.py")
     regen_index()
+    copy_images()
     # the static build reuses the exact frontend; localdb.js (site-only) stays
     shutil.copyfile(ROOT / "static/css/webreg.css", ROOT / "site/css/webreg.css")
     shutil.copyfile(ROOT / "static/js/webreg.js", ROOT / "site/js/webreg.js")
