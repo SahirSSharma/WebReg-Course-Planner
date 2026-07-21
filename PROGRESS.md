@@ -33,3 +33,6 @@ All 8 items implemented:
 7. Removed the Enroll/Waitlist actions everywhere — planning-only. Results action is a single **Plan**; schedule rows/blocks use Remove + Change; status is always "Planned"; wording updated.
 8. Removed the Add Event button.
 DB rebuilt (schema change), verified live at :5070 (screenshots in docs/research/verify/fb_*.png).
+
+## 2026-07-21 — Feedback: planned-state button
+Once a section is planned it can't be planned again — its Plan button turns into a dark, non-interactive "Planned" chip (`.planned-chip`, #0A4A65). Backend rejects a duplicate of the same section (409); the results grid re-renders on any schedule change so Plan↔Planned stays in sync (removing the class reverts it to Plan). Different sections of the same course can still be planned to compare.

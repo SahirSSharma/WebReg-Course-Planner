@@ -585,6 +585,10 @@ function renderSectionTable(entry) {
   return table;
 }
 
+function isSectionPlanned(secPk) {
+  return S.schedule.some(it => it.section_pk === secPk);
+}
+
 function findUnit(entry, secPk) {
   for (const g of entry.groups) {
     for (const u of g.units) if (u.sec && u.sec.id === secPk) return u;
@@ -632,9 +636,14 @@ function unitRowsHtml(course, unit) {
     availCell = full
       ? '<td rowspan="' + span + '"><span class="full-red">FULL Waitlist(' + (sec.waitlist_ct || 0) + ")</span></td>"
       : '<td rowspan="' + span + '">' + sec.seats_avail + "</td>";
-    /* planning-only: the single action is Plan (any section, full or not) */
+    /* planning-only: Plan the section, or show a dark "Planned" chip once it's
+       on your schedule (can't plan the same section twice). */
+    const planned = isSectionPlanned(sec.id);
     actionCell = '<td rowspan="' + span + '" class="act">'
-      + '<button class="btn btn-sm" data-act="plan" data-sec="' + sec.id + '">Plan</button></td>';
+      + (planned
+        ? '<span class="btn btn-sm planned-chip">Planned</span>'
+        : '<button class="btn btn-sm" data-act="plan" data-sec="' + sec.id + '">Plan</button>')
+      + "</td>";
   }
 
   let html = "<tr>";
@@ -663,6 +672,8 @@ async function refreshSchedule() {
     S.schedule = [];
   }
   renderSchedule();
+  // keep the results grid's Plan/Planned state in sync with the schedule
+  if (S.courses && !$("#results-region").hidden) renderResults();
 }
 
 function wireScheduleChrome() {
