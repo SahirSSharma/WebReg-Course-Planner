@@ -853,9 +853,11 @@ function renderSchedule() {
   $("#view-list").hidden = S.view !== "list";
   $("#view-calendar").hidden = S.view !== "calendar";
   $("#view-finals").hidden = S.view !== "finals";
+  $("#view-map").hidden = S.view !== "map";
   if (S.view === "list") renderListView();
   if (S.view === "calendar") renderCalendarView();
   if (S.view === "finals") renderFinalsView();
+  if (S.view === "map") renderMapView();
 }
 
 /* ---------------- list view */
@@ -1125,6 +1127,176 @@ function renderFinalsView() {
   html += "</div></div>";
   root.innerHTML = html;
 }
+
+/* ---------------- map view (campus map + walking distances) */
+
+function ensureLeaflet() {
+  if (window.L) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "vendor/leaflet.css";      // self-hosted — no external CDN
+    document.head.appendChild(css);
+    const js = document.createElement("script");
+    js.src = "vendor/leaflet.js";
+    js.onload = resolve;
+    js.onerror = reject;
+    document.head.appendChild(js);
+  });
+}
+
+async function loadBuildings() {
+  if (S.buildings) return S.buildings;
+  try { S.buildings = await (await fetch("data/buildings.json")).json(); }
+  catch (e) { S.buildings = {}; }
+  return S.buildings;
+}
+
+const WALK_MPS = 1.35, DETOUR = 1.3;   // ~campus walking pace, path-vs-straight factor
+function metersBetween(a, b) {
+  const R = 6371000, r = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+  const s = Math.sin(dLat / 2) ** 2 +
+    Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+function walkMinutes(m) { return Math.max(1, Math.round(m * DETOUR / WALK_MPS / 60)); }
+
+/* per-day sequence of located meetings (for pins + back-to-back walks) */
+function locatedMeetings(bmap) {
+  const byDay = {};
+  for (const d of DAY_ORDER) byDay[d] = [];
+  for (const it of S.schedule) {
+    for (const m of itemWeeklyMeetings(it)) {
+      const a = parseTimeMin(m.time_start), b = parseTimeMin(m.time_end);
+      const loc = bmap[m.building];
+      if (a == null || b == null || !loc) continue;
+      for (const d of parseDays(m.days))
+        if (byDay[d]) byDay[d].push({ it, m, a, b, loc });
+    }
+  }
+  for (const d of DAY_ORDER) byDay[d].sort((x, y) => x.a - y.a);
+  return byDay;
+}
+
+async function renderMapView() {
+  const root = $("#view-map");
+  const bmap = await loadBuildings();
+
+  if (!S.schedule.length) {
+    root.innerHTML = '<div class="list-empty" style="border-top:1px solid #0A4A65">'
+      + "Plan some classes and they'll appear on the campus map here, "
+      + "with walking times between your back-to-back classes.</div>";
+    return;
+  }
+  if (!root.querySelector("#leaflet-map")) {
+    root.innerHTML = '<div id="leaflet-map"></div><div id="walk-summary"></div>';
+  }
+  try { await ensureLeaflet(); }
+  catch (e) {
+    root.innerHTML = '<div class="list-empty">Couldn\'t load the map (network blocked). '
+      + "Your class buildings: " + esc(distinctBuildings(bmap).join(", ")) + "</div>";
+    return;
+  }
+
+  // one marker per distinct building, popup lists the classes there
+  const pins = {};
+  for (const it of S.schedule) {
+    for (const m of itemWeeklyMeetings(it)) {
+      const loc = bmap[m.building];
+      if (!loc) continue;
+      const p = (pins[m.building] = pins[m.building] || { loc, list: [], codes: new Set() });
+      p.codes.add(itemCode(it));
+      p.list.push(itemCode(it) + " " + m.meeting_type + " · " + (m.days || "") + " " + timeRange(m)
+        + (m.room ? " · " + m.building + " " + m.room : ""));
+    }
+  }
+
+  if (!S.map) {
+    S.map = L.map("leaflet-map", { scrollWheelZoom: false })
+      .setView([32.8801, -117.2340], 15);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(S.map);
+    S.mapLayer = L.layerGroup().addTo(S.map);
+  }
+  S.mapLayer.clearLayers();
+
+  const pts = [];
+  for (const [name, p] of Object.entries(pins)) {
+    // vector marker (no image assets) with a label
+    const mk = L.circleMarker([p.loc.lat, p.loc.lng], {
+      radius: 8, color: "#0A4A65", weight: 2,
+      fillColor: "#CB6C12", fillOpacity: 0.9,
+    }).addTo(S.mapLayer);
+    mk.bindPopup("<b>" + escHtml(name) + "</b><br>" + p.list.map(escHtml).join("<br>"));
+    mk.bindTooltip([...p.codes].join(", "),
+      { permanent: true, direction: "right", className: "map-lbl", offset: [8, 0] });
+    pts.push([p.loc.lat, p.loc.lng]);
+  }
+
+  // back-to-back walking segments per day
+  const byDay = locatedMeetings(bmap);
+  const walks = [];
+  for (const d of DAY_ORDER) {
+    const seq = byDay[d];
+    for (let i = 0; i + 1 < seq.length; i++) {
+      const from = seq[i], to = seq[i + 1];
+      if (from.loc === to.loc || (from.loc.lat === to.loc.lat && from.loc.lng === to.loc.lng)) continue;
+      const dist = metersBetween(from.loc, to.loc);
+      const walk = walkMinutes(dist), gap = to.a - from.b;
+      L.polyline([[from.loc.lat, from.loc.lng], [to.loc.lat, to.loc.lng]],
+        { color: gap >= 0 && walk > gap ? "#C00" : "#0A4A65", weight: 3, opacity: 0.7, dashArray: "6 5" })
+        .addTo(S.mapLayer);
+      walks.push({ d, from, to, dist, walk, gap });
+    }
+  }
+
+  if (pts.length) S.map.fitBounds(pts, { padding: [40, 40], maxZoom: 16 });
+  setTimeout(() => S.map.invalidateSize(), 60);
+
+  renderWalkSummary(walks);
+}
+
+function distinctBuildings(bmap) {
+  const s = new Set();
+  for (const it of S.schedule)
+    for (const m of itemWeeklyMeetings(it)) if (bmap[m.building]) s.add(m.building);
+  return [...s];
+}
+
+const DAY_FULL = { M: "Monday", Tu: "Tuesday", W: "Wednesday", Th: "Thursday",
+  F: "Friday", Sa: "Saturday", Su: "Sunday" };
+
+function renderWalkSummary(walks) {
+  const el = $("#walk-summary");
+  if (!walks.length) {
+    el.innerHTML = '<div class="walk-none">No back-to-back classes in different buildings — '
+      + "nothing to walk between. Pins above show where your classes meet.</div>";
+    return;
+  }
+  let html = '<div class="walk-hd">Walking between back-to-back classes</div>';
+  const byDay = {};
+  for (const w of walks) (byDay[w.d] = byDay[w.d] || []).push(w);
+  for (const d of DAY_ORDER) {
+    if (!byDay[d]) continue;
+    html += '<div class="walk-day"><div class="walk-dayname">' + DAY_FULL[d] + "</div>";
+    for (const w of byDay[d]) {
+      const tight = w.gap >= 0 && w.walk > w.gap;
+      html += '<div class="walk-row' + (tight ? " tight" : "") + '">'
+        + "<b>" + escHtml(itemCode(w.from.it)) + "</b> → <b>" + escHtml(itemCode(w.to.it)) + "</b> "
+        + '<span class="walk-meta">' + escHtml(w.from.m.building) + " → " + escHtml(w.to.m.building)
+        + " · " + Math.round(w.dist) + " m · ~" + w.walk + " min walk"
+        + (w.gap >= 0 ? " · " + w.gap + " min between classes" : "")
+        + "</span> " + (tight ? '<span class="walk-flag">⚠ tight</span>'
+                              : '<span class="walk-ok">✓</span>')
+        + "</div>";
+    }
+    html += "</div>";
+  }
+  el.innerHTML = html;
+}
+
+function escHtml(s) { return esc(s); }
 
 /* ================================================================ modals */
 

@@ -534,6 +534,29 @@ tr.row-planned td { background: #fff; color: #888; }
 .cal-unsched b { margin-right: 8px; }
 .cal-unsched .us-item { margin-right: 18px; white-space: nowrap; }
 
+/* ------------------------------------------------ map view */
+#view-map { border: 1px solid #0A4A65; border-top: none; }
+#leaflet-map { height: 460px; width: 100%; background: #e8eef0; }
+#leaflet-map .leaflet-container { font: inherit; }
+#walk-summary { padding: 8px 10px 12px; }
+.walk-hd { font-weight: bold; font-size: 13px; color: #0A4A65; margin: 4px 0 6px; }
+.walk-day { margin-bottom: 8px; }
+.walk-dayname { font-weight: bold; font-size: 12px; color: #333; margin: 4px 0 2px; }
+.walk-row {
+  font-size: 12px; padding: 4px 8px; margin: 2px 0;
+  background: #f2f7f9; border-left: 3px solid #41788D; border-radius: 2px;
+}
+.walk-row.tight { background: #fbecec; border-left-color: #C00; }
+.walk-meta { color: #555; }
+.walk-ok { color: #178a3a; font-weight: bold; }
+.walk-flag { color: #C00; font-weight: bold; }
+.walk-none { font-size: 12px; color: #555; padding: 4px 2px; }
+.leaflet-tooltip.map-lbl {
+  background: rgba(10,74,101,.9); color: #fff; border: none;
+  font-weight: bold; font-size: 11px; padding: 1px 5px; box-shadow: none;
+}
+.leaflet-tooltip.map-lbl::before { display: none; }
+
 /* conflict banner */
 .conflict-banner {
   background: #F9EBEB;
