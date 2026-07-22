@@ -1,5 +1,11 @@
 # Progress Log
 
+## 2026-07-22 — Total planned units counter (preview)
+- New readout on the left of the "My schedule:" row — `Total units: 8.00 (2 classes)`. Sums `units` across all non-event schedule items, hides when the schedule is empty, re-renders on every schedule change (`renderTotalUnits()` called from `renderSchedule()`), so it stays put across List/Calendar/Finals/Map tabs. Custom events excluded.
+- Small gray 12px text matching the header row — visible but unobtrusive; hidden in print along with the rest of `.sched-hdr`.
+- Verified with Playwright on the static build: hidden when empty → 4.00 after one plan → 8.00 after two, cross-checked against the List-view Units column; screenshots at 1336/1600/2560.
+- Deployed to **staging → /preview/ only** (commit 4182713); production (main) untouched pending Sahir's OK.
+
 ## 2026-07-21 — Manual "Add Event" on the schedule
 - New **Add Event** link in the schedule tab bar (returns the classic-WebReg chrome link removed in feedback round 1 — now as a real feature): add any weekly block (work, clubs, gym) with name, days, start/end (15-min ticks, 7am–10pm), optional location.
 - Events are full citizens of the schedule: gold blocks in Calendar, own rows in List (status "Event"), counted by the conflict engine (banner + red borders + the same warn-then-allow confirm flow as planning a class), Remove/Change buttons everywhere classes have them.
