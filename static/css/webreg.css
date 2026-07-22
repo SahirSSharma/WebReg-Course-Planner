@@ -412,6 +412,12 @@ table.sec-table {
 }
 .sched-hdr b { font-size: 13px; }
 .sched-hdr select { min-width: 210px; color: #222; }
+.sched-units {
+  margin-right: auto;
+  font-size: 12px;
+  color: #444;
+}
+.sched-units b { color: #14304d; }
 
 .sched-tabs {
   background: #0A4A65;

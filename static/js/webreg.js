@@ -903,8 +903,20 @@ function renderConflictBanner() {
     + "Review your Calendar and Final Tab now.";
 }
 
+function renderTotalUnits() {
+  const el = $("#sched-units");
+  if (!el) return;
+  const classes = S.schedule.filter(it => !it.custom);
+  if (!classes.length) { el.hidden = true; el.innerHTML = ""; return; }
+  const total = classes.reduce((sum, it) => sum + (+it.units || 0), 0);
+  el.hidden = false;
+  el.innerHTML = "Total units: <b>" + fmtUnitsVal(total) + "</b> ("
+    + classes.length + (classes.length === 1 ? " class" : " classes") + ")";
+}
+
 function renderSchedule() {
   renderConflictBanner();
+  renderTotalUnits();
   $("#view-list").hidden = S.view !== "list";
   $("#view-calendar").hidden = S.view !== "calendar";
   $("#view-finals").hidden = S.view !== "finals";
