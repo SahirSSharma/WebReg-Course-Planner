@@ -46,3 +46,6 @@ Once a section is planned it can't be planned again — its Plan button turns in
 - Deployed via a `gh-pages` branch (root); repo made public (Pages free tier). Repo canonical name is now **WebReg-Course-Planner**.
 - Redeploy after a data/UI change: `python3 scripts/export_static.py` → copy `static/*` into `site/` if the app JS/CSS changed → push `site/` contents to the `gh-pages` branch.
 - Caveat: seats/waitlists are a snapshot (baked at export). Refresh = re-run the TSS capture + import + export.
+
+## 2026-07-21 — Finals: derive weekday for FA26 final rows
+Audit confirmed final-exam dates are fully present (1,225 FA26 FI rows from TSS; 459 FA25) and already render in the results table FINAL row, the schedule list, and the Finals tab. One gap: TSS final rows store a bare date (`12/09/2026`) with no weekday prefix, so the weekday cell rendered blank. `finalWeekday()` now derives the weekday from the date when the prefix is missing (verified: 12/09/2026 → W, 12/05/2026 → Sa). Patched in both `static/js/webreg.js` and `site/js/webreg.js`; not yet redeployed to gh-pages (needs OK).
