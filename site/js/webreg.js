@@ -1177,6 +1177,7 @@ const DORMS = [
   { name: "Earl Warren College", lat: 32.8840, lng: -117.2325 },
   { name: "Eleanor Roosevelt College (ERC)", lat: 32.8853, lng: -117.2418 },
   { name: "Seventh College (North Torrey Pines)", lat: 32.8880, lng: -117.2425 },
+  { name: "Eighth College (Theatre District)", lat: 32.8721, lng: -117.2419 },
   { name: "Sixth College / Pepper Canyon", lat: 32.8779, lng: -117.2327 },
   { name: "Pepper Canyon Apartments", lat: 32.8788, lng: -117.2298 },
   { name: "Rita Atkinson Residences", lat: 32.8722, lng: -117.2355 },
