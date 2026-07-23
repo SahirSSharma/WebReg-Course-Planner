@@ -504,7 +504,7 @@ tr.row-event td { background: #FBF4DC; color: #5a4a14; border-color: #e3d5a5; }
 .cal-grid { display: flex; min-width: 700px; }
 .cal-gutter { width: 46px; flex: none; background: #0A4A65; }
 .cal-gutter .gh {
-  height: 60px;
+  height: 96px;   /* one hour — keep in sync with webreg.js PX_PER_HOUR */
   color: #fff;
   font-size: 11px;
   font-weight: bold;
@@ -528,13 +528,14 @@ tr.row-event td { background: #FBF4DC; color: #5a4a14; border-color: #e3d5a5; }
 .cal-col-hd.two { line-height: 13px; padding-top: 1px; }
 .cal-body {
   position: relative;
+  /* hour = 96px (sync with PX_PER_HOUR): faint half-hour line at 48, full-hour line at 96 */
   background:
     repeating-linear-gradient(
       to bottom,
-      #fff 0, #fff 29px,
-      #eef3f5 29px, #eef3f5 30px,
-      #fff 30px, #fff 59px,
-      #d7e2e7 59px, #d7e2e7 60px);
+      #fff 0, #fff 47px,
+      #eef3f5 47px, #eef3f5 48px,
+      #fff 48px, #fff 95px,
+      #d7e2e7 95px, #d7e2e7 96px);
 }
 .cal-block {
   position: absolute;
@@ -545,28 +546,55 @@ tr.row-event td { background: #FBF4DC; color: #5a4a14; border-color: #e3d5a5; }
   font-size: 10px;
   overflow: hidden;
   z-index: 5;
+  /* fill the class's real time span exactly: info at the top, actions pinned
+     to the bottom edge (like real WebReg), buttons always visible. Height is
+     honest — at 96px/hour a 50-min class fits everything, so no min-height
+     that would spill into the class below. */
+  display: flex;
+  flex-direction: column;
 }
 .cal-block .strip {
   background: rgba(10,74,101,.85);
   padding: 1px 3px;
   display: flex;
   justify-content: space-between;
+  gap: 4px;
   font-size: 9px;
+  line-height: 11px;
   overflow: hidden;
+  flex: none;
 }
-.cal-block .strip span { white-space: nowrap; }
-.cal-block .bl { text-align: center; line-height: 12px; padding: 1px 2px; }
+.cal-block .strip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-block .bl { text-align: center; line-height: 13px; padding: 0 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cal-block .bcode { font-weight: bold; font-size: 11px; }
-.cal-block .bbtns { text-align: center; padding: 2px 0 3px; white-space: nowrap; }
+.cal-block .bbtns { margin-top: auto; text-align: center; padding: 1px 0 2px; white-space: nowrap; flex: none; }
 .cal-block .bbtns .btn-sm { padding: 1px 5px; font-size: 10px; margin: 0 1px; }
+/* Buttons adapt to the block's own width (container queries) so they never
+   overflow: slimmer side-by-side in narrow day columns (mobile), stacked in
+   lane-split conflict halves. */
+.cal-block { container-type: inline-size; }
+@container (width < 96px) {
+  .cal-block .bbtns .btn-sm { padding: 1px 2px; font-size: 9px; margin: 0; }
+}
+@container (width < 82px) {
+  .cal-block .bbtns { white-space: normal; }
+  .cal-block .bbtns .btn-sm { display: block; margin: 1px auto; width: calc(100% - 6px);
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
 .cal-block .bdate { font-style: italic; font-weight: bold; }
-/* Short blocks would clip the Remove/Change buttons — reveal the full block
-   on hover (auto height, nothing cut off), lifted above its neighbours. */
+/* Compact (< ~48-min blocks): keep time strip + course code + buttons; the
+   room/instructor lines reappear on hover, when the block expands in place. */
+.cal-block.compact .bl:not(.bcode) { display: none; }
+.cal-block.compact:hover { height: auto !important; min-height: 78px; }
+.cal-block.compact:hover .bl:not(.bcode) { display: block; }
+/* Lift the hovered block above its neighbours and expand lane-split conflict
+   halves to the full column width so everything is readable on hover. */
 .cal-block:hover {
-  height: auto !important;
-  min-height: 92px;
   overflow: visible;
   z-index: 60 !important;
+  left: 2px !important;
+  right: 2px !important;
   box-shadow: 0 2px 8px rgba(0,0,0,.35);
 }
 .cal-block.wl { background: #CEEBEE; color: #04303f; border-color: #9cc5cc; }

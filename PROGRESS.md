@@ -1,5 +1,29 @@
 # Progress Log
 
+## 2026-07-23 — Calendar block render overhaul (ported from TritonPlan)
+Sahir asked for the block formatting fix to be pushed here too. Same change
+as tritonplan.com's emulator (kept 1:1 — port future calendar edits both ways):
+- **96px/hour** grid (was 60) — the smallest scale where a 50-min class fits
+  time strip + code + room + instructor + Remove/Change with nothing clipped;
+  grid backgrounds/gutter updated to match (half-hour line at 48px).
+- **Honest block heights** (no hover-reveal needed; buttons pinned to the
+  block's bottom edge, always visible); blocks sorted by start time.
+- **Compact mode** for sub-~35-min blocks (strip + code + buttons; detail
+  lines return on hover, which also expands lane-split conflict halves to
+  full column width).
+- **Container queries**: buttons slim down in narrow day columns (mobile) and
+  stack inside conflict halves — no more horizontal overflow; text lines
+  ellipsize instead of clipping mid-glyph.
+- **Dynamic grid range**: 1h before the earliest block to 1h after the last
+  (empty -> 8am–6pm); Finals view same treatment.
+- Verified with the same automated matrix as TritonPlan (real courses +
+  8 edge-case events: 30-min, back-to-back, overlapping, late-night, weekend,
+  long-title, TBA; per-block no-clip/buttons-in-bounds/lane-overlap asserts
+  at 1440px + 390px; finals + empty-grid checks) — all green.
+- NOTE: local rebuild churned site/data/catalog.json ids (fresh seed);
+  reverted — CI rebuilds data deterministically from data/parsed, and
+  shipping id churn would break users' saved schedules (section_pk refs).
+
 ## 2026-07-22 — Fix "instructor teaching 16 classes" placeholder bug (r/UCSD)
 - A viral r/UCSD post ("Professor Michael Holst teaching 16 classes this fall?") exposed a **data** bug, not a search bug: searching instructor "holst" returned 16 MATH courses (Calc I → grad Math Methods). Root cause — UCSD's TSS lists a department's **instructor of record** (usually the chair) as the instructor for sections with no real instructor assigned yet, so that one name spreads across many unrelated courses. Real WebReg shows these as "Staff".
 - Proof it's a placeholder, not real: Holst appears as instructor on 150 sections that **overlap in time** — e.g. MATH 10A + 20B + 105 all at MWF 2:00–2:50pm simultaneously (35 physically-impossible conflicts). No human teaches 16 distinct courses at once.

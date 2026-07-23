@@ -1019,14 +1019,36 @@ function wireItemButtons(root) {
 
 /* ---------------- calendar view */
 
-const CAL_START = 7 * 60, CAL_END = 22 * 60, PX_PER_HOUR = 60;
+/* CAL_START/CAL_END are only the custom-event picker's bounds now; the grids
+   themselves size to the planned classes via calRange().
+   96px/hour (1.6px/min) is the smallest scale at which a 50-minute class
+   fits its full content (time strip, code, room, instructor, Remove/Change)
+   with nothing clipped. Blocks shorter than BLOCK_FULL_PX switch to a
+   compact layout (strip + code + buttons) and expand on hover. */
+const CAL_START = 7 * 60, CAL_END = 22 * 60, PX_PER_HOUR = 96;
+const BLOCK_FULL_PX = 78, BLOCK_MIN_PX = 48;
 const DAY_ORDER = ["M", "Tu", "W", "Th", "F", "Sa", "Su"];
 const DAY_NAMES = { M: "Monday", Tu: "Tuesday", W: "Wednesday", Th: "Thursday",
   F: "Friday", Sa: "Saturday", Su: "Sunday" };
 
-function calGutterHtml() {
+/* visible grid range: one hour before the earliest block to one hour after
+   the last one, rounded out to whole hours (empty schedule -> 8am-6pm) */
+function calRange(blocks) {
+  let lo = Infinity, hi = -Infinity;
+  for (const blk of blocks) {
+    if (blk.a < lo) lo = blk.a;
+    if (blk.b > hi) hi = blk.b;
+  }
+  if (!isFinite(lo) || !isFinite(hi)) return { start: 8 * 60, end: 18 * 60 };
+  return {
+    start: Math.max(0, Math.floor((lo - 60) / 60) * 60),
+    end: Math.min(24 * 60, Math.ceil((hi + 60) / 60) * 60),
+  };
+}
+
+function calGutterHtml(startMin, endMin) {
   let g = '<div class="cal-gutter"><div class="gh gh0"></div>';
-  for (let h = 7; h < 22; h++) {
+  for (let h = startMin / 60; h < endMin / 60; h++) {
     const ap = h < 12 ? "am" : "pm";
     const hh = ((h + 11) % 12) + 1;
     g += '<div class="gh">' + hh + ap + "</div>";
@@ -1046,7 +1068,8 @@ function blockClass(st) {
 }
 
 function calBlockHtml(it, m, conflict, heightPx, topPx, lane) {
-  const cls = "cal-block" + blockClass(it.status) + (conflict ? " conflict" : "");
+  const cls = "cal-block" + blockClass(it.status) + (conflict ? " conflict" : "")
+    + (heightPx < BLOCK_FULL_PX ? " compact" : "");
   const btns = '<button class="btn btn-sm" data-a="remove" data-id="' + it.item_id + '">Remove</button>'
     + '<button class="btn btn-sm" data-a="change" data-id="' + it.item_id + '">Change</button>';
   /* conflicting blocks overlap with a cascade offset, like real WebReg (D-p16) */
@@ -1115,17 +1138,20 @@ function renderCalendarView() {
     }
   }
 
-  let html = '<div class="cal-wrap"><div class="cal-grid">' + calGutterHtml();
-  const bodyH = (CAL_END - CAL_START) / 60 * PX_PER_HOUR;
+  const range = calRange(DAY_ORDER.flatMap(d => byDay[d]));
+  let html = '<div class="cal-wrap"><div class="cal-grid">' + calGutterHtml(range.start, range.end);
+  const bodyH = (range.end - range.start) / 60 * PX_PER_HOUR;
   for (const d of DAY_ORDER) {
+    byDay[d].sort((x, y) => x.a - y.a || x.b - y.b);
     assignLanes(byDay[d]);
     html += '<div class="cal-col"><div class="cal-col-hd">' + DAY_NAMES[d] + "</div>"
       + '<div class="cal-body" style="height:' + bodyH + 'px">';
     for (const blk of byDay[d]) {
-      const top = (blk.a - CAL_START) / 60 * PX_PER_HOUR;
-      // block height = the class's real duration (1px per minute); short
-      // blocks show time + course, and expand on hover for full details.
-      const h = Math.max(30, (blk.b - blk.a) / 60 * PX_PER_HOUR);
+      const top = (blk.a - range.start) / 60 * PX_PER_HOUR;
+      // block height = the class's real duration (1.6px per minute); at this
+      // scale a 50-min class fits every line + buttons. Sub-30-min blocks
+      // clamp to BLOCK_MIN_PX and render compact (expand on hover).
+      const h = Math.max(BLOCK_MIN_PX, (blk.b - blk.a) / 60 * PX_PER_HOUR);
       const conflict = conflictKeys.has(blk.it.item_id + ":" + blk.m.id);
       html += calBlockHtml(blk.it, blk.m, conflict, h, top, blk.lane);
     }
@@ -1175,8 +1201,11 @@ function renderFinalsView() {
     return !isNaN(x) && x.toDateString() === d.toDateString();
   };
 
-  let html = '<div class="cal-wrap"><div class="cal-grid">' + calGutterHtml();
-  const bodyH = (CAL_END - CAL_START) / 60 * PX_PER_HOUR;
+  const range = calRange(finals
+    .map(f => ({ a: parseTimeMin(f.fi.time_start), b: parseTimeMin(f.fi.time_end) }))
+    .filter(t => t.a != null && t.b != null));
+  let html = '<div class="cal-wrap"><div class="cal-grid">' + calGutterHtml(range.start, range.end);
+  const bodyH = (range.end - range.start) / 60 * PX_PER_HOUR;
   for (const col of cols) {
     const label = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][col.getDay()];
     html += '<div class="cal-col"><div class="cal-col-hd two">' + label
@@ -1185,8 +1214,8 @@ function renderFinalsView() {
     for (const f of finals.filter(f => sameDay(finalDate(f.fi.days), col))) {
       const a = parseTimeMin(f.fi.time_start), b = parseTimeMin(f.fi.time_end);
       if (a == null || b == null) continue;
-      const top = (a - CAL_START) / 60 * PX_PER_HOUR;
-      const h = Math.max(40, (b - a) / 60 * PX_PER_HOUR);
+      const top = (a - range.start) / 60 * PX_PER_HOUR;
+      const h = Math.max(BLOCK_MIN_PX, (b - a) / 60 * PX_PER_HOUR);
       const conflict = conflictKeys.has(f.it.item_id + ":" + f.fi.id);
       const cls = "cal-block" + blockClass(f.it.status) + (conflict ? " conflict" : "");
       html += '<div class="' + cls + '" style="top:' + top + "px;height:" + h + 'px">'
