@@ -48,11 +48,14 @@ def sh(*cmd, check=True):
 
 
 def _session_live():
-    """True only when the saved cookies can actually read TSS OData (HTTP 200).
+    """True once the saved cookies represent a completed SSO+Duo login.
 
-    A SAP_SESSIONID cookie is handed out BEFORE SSO+Duo completes, so its mere
-    presence is not proof of login — we confirm by reading one row from the
-    live service. This is what keeps us from jumping in mid-login and 403-ing.
+    A SAP_SESSIONID cookie is handed out BEFORE login finishes, so its mere
+    presence isn't proof — we confirm with the Fiori launchpad bootstrap
+    endpoint (/sap/bc/ui2/start_up), which returns 200 only for an authed
+    session. (We deliberately do NOT probe the con_module OData service here:
+    it 403s "Access denied" even for a fully-authed session until the SoC app
+    is loaded — that authorization is handled later by tss/pull_soc_batch.py.)
     """
     import ssl
     import urllib.request
@@ -64,9 +67,7 @@ def _session_live():
                      if c["domain"].endswith("tss.ucsd.edu"))
     if "SAP_SESSIONID" not in cook:
         return False
-    url = ("https://tss.ucsd.edu/sap/opu/odata4/sap/yucsd_con_module_sb/srvd/"
-           "sap/yucsd_con_module_servicedef/0001/"
-           "YUCSD_CON_MODULE?sap-client=500&$top=1")
+    url = "https://tss.ucsd.edu/sap/bc/ui2/start_up"
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -75,7 +76,7 @@ def _session_live():
         "User-Agent": "Mozilla/5.0"})
     try:
         with urllib.request.urlopen(req, context=ctx, timeout=30) as r:
-            return "value" in json.loads(r.read().decode("utf-8", "replace"))
+            return r.status == 200
     except Exception:
         return False
 
