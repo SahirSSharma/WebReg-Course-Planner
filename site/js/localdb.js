@@ -17,10 +17,16 @@
   function loadData() {
     if (DATA.loaded) return DATA.loaded;
     DATA.loaded = (async () => {
+      // Cache-bust the data bundle with a build-stamped content hash
+      // (window.__DATA_V, injected into index.html) so a refreshed catalog
+      // reaches every visitor immediately instead of being served stale from
+      // the browser/CDN HTTP cache. Falls back to no query in dev.
+      const dv = (typeof window !== "undefined" && window.__DATA_V)
+        ? "?v=" + window.__DATA_V : "";
       const [catalog, subjects, terms] = await Promise.all([
-        realFetch("data/catalog.json").then(r => r.json()),
-        realFetch("data/subjects.json").then(r => r.json()),
-        realFetch("data/terms.json").then(r => r.json()),
+        realFetch("data/catalog.json" + dv).then(r => r.json()),
+        realFetch("data/subjects.json" + dv).then(r => r.json()),
+        realFetch("data/terms.json" + dv).then(r => r.json()),
       ]);
       DATA.courses = catalog;
       DATA.subjects = subjects;

@@ -45,6 +45,11 @@ def regen_index():
     css_v = _ver(ROOT / "static/css/webreg.css")
     js_v = _ver(ROOT / "static/js/webreg.js")
     ldb_v = _ver(ROOT / "site/js/localdb.js")
+    # Cache-bust the data bundle too: localdb.js fetches data/*.json, which the
+    # browser/CDN would otherwise serve stale after a catalog refresh (this is
+    # what left "Holst" showing on already-visited browsers). Hash of the
+    # catalog stands in for the whole bundle — it changes on every data change.
+    data_v = _ver(ROOT / "site/data/catalog.json")
     src = (ROOT / "templates" / "index.html").read_text()
     # bake the "Data as of" date (Flask fills this in dev; the static site
     # has no server, so substitute the committed value here)
@@ -55,6 +60,7 @@ def regen_index():
     src = src.replace("/static/img/", "img/")
     src = src.replace(
         '<script src="/static/js/webreg.js"></script>',
+        f'<script>window.__DATA_V="{data_v}";</script>\n'
         f'<script src="js/localdb.js?v={ldb_v}"></script>\n'
         f'<script src="js/webreg.js?v={js_v}"></script>')
     if ADS:
