@@ -135,8 +135,75 @@ def parse_sched(sched):
     return meetings, final
 
 
-def clean_instr(name):
-    return (name or "").strip()
+def clean_instr(name, placeholders=frozenset()):
+    name = (name or "").strip()
+    # A flagged department-of-record placeholder (see detect_placeholder_
+    # instructors) is blanked so the frontend renders it as "Staff", matching
+    # real WebReg for sections with no instructor assigned yet.
+    return "" if name in placeholders else name
+
+
+def _time_min(t):
+    """WebReg time '2:00p' / '11:30a' -> minutes since midnight (or None)."""
+    m = re.match(r"(\d{1,2}):(\d{2})([ap])$", t or "")
+    if not m:
+        return None
+    h, mn, ap = int(m.group(1)), int(m.group(2)), m.group(3)
+    if ap == "p" and h != 12:
+        h += 12
+    if ap == "a" and h == 12:
+        h = 0
+    return h * 60 + mn
+
+
+def detect_placeholder_instructors(events, mod_by_id):
+    """Return instructor names TSS uses as a department's "instructor of record".
+
+    When a section has no real instructor assigned yet, UCSD's TSS fills in the
+    department chair / graduate coordinator as a placeholder. That single name
+    then shows up across many unrelated courses — frequently scheduled at the
+    SAME meeting time — which is physically impossible for one human (this is
+    what made "Michael Holst teaching 16 classes" go viral on r/UCSD). Real
+    WebReg shows these sections as "Staff".
+
+    We flag a name only when its meetings overlap in time across >= 3 DISTINCT
+    courses. The >= 3 threshold is deliberate: a genuine cross-listing (one
+    class offered under two course codes at the same time) produces exactly 2
+    overlapping "courses" and must NOT be flagged, whereas no real instructor is
+    ever in three different classes at once. This keeps real professors who
+    teach a placeholder-adjacent section untouched — only the placeholder name
+    is blanked.
+    """
+    slots = defaultdict(list)
+    for e in events:
+        name = (e.get("InstructorName") or "").strip()
+        if not name:
+            continue
+        abbr = mod_by_id.get(e.get("ModuleID"), {}).get("CourseAbbr", "")
+        for mt in parse_sched(e.get("Sched", ""))[0]:
+            a, b = _time_min(mt["t0"]), _time_min(mt["t1"])
+            if a is None or b is None or not mt["days"]:
+                continue
+            days = frozenset(re.findall(r"Su|Sa|Tu|Th|M|W|F", mt["days"]))
+            slots[name].append((abbr, e.get("EventKey"), days, a, b))
+
+    flagged = set()
+    for name, ss in slots.items():
+        # dedupe identical meetings so one lecture's repeats don't self-conflict
+        uniq = list({(s[0], s[1], tuple(sorted(s[2])), s[3]): s
+                     for s in ss}.values())
+        conflict_courses = set()
+        for i in range(len(uniq)):
+            ci, ki, di, ai, bi = uniq[i]
+            for j in range(i + 1, len(uniq)):
+                cj, kj, dj, aj, bj = uniq[j]
+                if (ci, ki) == (cj, kj):
+                    continue  # same lecture group of the same course
+                if di & dj and ai < bj and aj < bi:
+                    conflict_courses |= {ci, cj}
+        if len(conflict_courses) >= 3:
+            flagged.add(name)
+    return flagged
 
 
 def main():
@@ -148,6 +215,12 @@ def main():
     ev_by_mod = defaultdict(list)
     for e in events:
         ev_by_mod[e["ModuleID"]].append(e)
+
+    placeholder_instr = detect_placeholder_instructors(events, mod_by_id)
+    if placeholder_instr:
+        print(f"Blanked {len(placeholder_instr)} instructor-of-record "
+              f"placeholder(s) -> Staff: "
+              f"{', '.join(sorted(placeholder_instr))}")
 
     by_dept = defaultdict(list)
     n_courses = n_sections = 0
@@ -202,7 +275,8 @@ def main():
                         "days": mt["days"], "time_start": mt["t0"],
                         "time_end": mt["t1"], "building": mt["building"],
                         "room": mt["room"],
-                        "instructor": clean_instr(e.get("InstructorName", "")),
+                        "instructor": clean_instr(e.get("InstructorName", ""),
+                                                  placeholder_instr),
                         "avail": e.get("EventPkgSeatsAvailable")
                                  if (enrollable and first) else None,
                         "limit": e.get("EventPkgLimit")

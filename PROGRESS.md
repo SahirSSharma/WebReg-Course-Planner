@@ -1,5 +1,13 @@
 # Progress Log
 
+## 2026-07-22 — Fix "instructor teaching 16 classes" placeholder bug (r/UCSD)
+- A viral r/UCSD post ("Professor Michael Holst teaching 16 classes this fall?") exposed a **data** bug, not a search bug: searching instructor "holst" returned 16 MATH courses (Calc I → grad Math Methods). Root cause — UCSD's TSS lists a department's **instructor of record** (usually the chair) as the instructor for sections with no real instructor assigned yet, so that one name spreads across many unrelated courses. Real WebReg shows these as "Staff".
+- Proof it's a placeholder, not real: Holst appears as instructor on 150 sections that **overlap in time** — e.g. MATH 10A + 20B + 105 all at MWF 2:00–2:50pm simultaneously (35 physically-impossible conflicts). No human teaches 16 distinct courses at once.
+- Fix in `tss/import_fa26.py` → `detect_placeholder_instructors()`: flags any instructor whose meetings overlap across **≥3 distinct courses** (the ≥3 threshold clears genuine cross-listings, which produce exactly 2) and blanks the name so the frontend renders "Staff". Caught **16** chair/coordinator placeholders across MATH, PHIL, CSE, POLI, NANO, MUS, EDS, PHYS, etc. (Holst, Graeve, McKenzie, McAuley, Desposato, Weibel…). Name-agnostic, so it self-corrects on every future TSS refresh.
+- Surgical: MATH 10A groups A/B/C keep their real instructors (Bowers, Tilton); only the placeholder group D → Staff. 1,711 real instructors preserved.
+- The search bar itself was verified fully functional — `holst`→0, `bowers`→MATH 10A, subject+courseno, simple text (`calculus`→11), title (`analysis`→64) all correct on live :5070. The filter was faithfully returning corrupted source data; fixed at the import layer + rebuilt `site/data/catalog.json`.
+- **Not deployed** — production push awaits Sahir's OK (WebReg deploy rule).
+
 ## 2026-07-22 — Total planned units counter (preview)
 - New readout on the left of the "My schedule:" row — `Total units: 8.00 (2 classes)`. Sums `units` across all non-event schedule items, hides when the schedule is empty, re-renders on every schedule change (`renderTotalUnits()` called from `renderSchedule()`), so it stays put across List/Calendar/Finals/Map tabs. Custom events excluded.
 - Small gray 12px text matching the header row — visible but unobtrusive; hidden in print along with the rest of `.sched-hdr`.
