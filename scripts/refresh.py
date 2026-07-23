@@ -8,10 +8,15 @@ DON'T browse it. Instead we log in once, then read the class data straight
 from its backing OData v4 service with the session cookies. You just log in
 and close the window — the script does the rest.
 
+The ONLY manual step is the login itself: a REAL browser opens, you do UCSD
+SSO + Duo, and the script takes over the instant a session appears — you do
+NOT need to browse anywhere or even close the window. Everything before and
+after the login is automated.
+
 Steps:
-  1. tss/connect.py — a REAL browser opens. Log in with UCSD SSO + Duo, then
-     simply CLOSE the window. (You do NOT need to click into Schedule of
-     Classes — ignore any tab that flickers open and shut.)
+  1. tss/connect.py — launched in the background; a REAL browser opens. You log
+     in with UCSD SSO + Duo and stop there. The script polls tss/state.json and
+     resumes the moment a live SAP session is captured.
   2. tss/fetch_soc.py — pulls the full FA26 catalog + events directly from the
      yucsd_con_module OData service using the session you just created.
      -> data/tss_fa26/{modules,events}.json
@@ -27,17 +32,83 @@ import datetime
 import json
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PY = sys.executable
 PARSED = ROOT / "data" / "parsed" / "FA26"
 STAMP = ROOT / "data" / "refreshed_at.txt"
+STATE = ROOT / "tss" / "state.json"
 
 
 def sh(*cmd, check=True):
     print(f"\n$ {' '.join(str(c) for c in cmd)}")
     return subprocess.run(cmd, cwd=ROOT, check=check)
+
+
+def _session_live():
+    """True only when the saved cookies can actually read TSS OData (HTTP 200).
+
+    A SAP_SESSIONID cookie is handed out BEFORE SSO+Duo completes, so its mere
+    presence is not proof of login — we confirm by reading one row from the
+    live service. This is what keeps us from jumping in mid-login and 403-ing.
+    """
+    import ssl
+    import urllib.request
+    try:
+        st = json.loads(STATE.read_text())
+    except Exception:
+        return False
+    cook = "; ".join(f"{c['name']}={c['value']}" for c in st.get("cookies", [])
+                     if c["domain"].endswith("tss.ucsd.edu"))
+    if "SAP_SESSIONID" not in cook:
+        return False
+    url = ("https://tss.ucsd.edu/sap/opu/odata4/sap/yucsd_con_module_sb/srvd/"
+           "sap/yucsd_con_module_servicedef/0001/"
+           "YUCSD_CON_MODULE?sap-client=500&$top=1")
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    req = urllib.request.Request(url, headers={
+        "Cookie": cook, "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0"})
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=30) as r:
+            return "value" in json.loads(r.read().decode("utf-8", "replace"))
+    except Exception:
+        return False
+
+
+def capture_session(timeout=600):
+    """Open the login browser and wait for the user to authenticate.
+
+    This is the ONLY manual step: a real Chromium window opens, the user does
+    UCSD SSO + Duo, and we take over the instant a SAP session appears — no
+    need to close the window or browse anywhere. Returns the connect.py
+    process (kept alive to hold the session) or None if login never landed.
+    """
+    # Drop any stale session so a leftover dead SAP cookie can't false-positive.
+    try:
+        STATE.unlink()
+    except FileNotFoundError:
+        pass
+    proc = subprocess.Popen([PY, str(ROOT / "tss" / "connect.py")], cwd=ROOT)
+    waited = 0
+    while waited < timeout:
+        if _session_live():
+            print("\nLive session confirmed — taking over, you can leave the "
+                  "window open (I'll close it when done).")
+            return proc
+        if proc.poll() is not None:      # browser closed before login landed
+            break
+        time.sleep(5)
+        waited += 5
+    try:
+        proc.terminate()
+    except Exception:
+        pass
+    return None
 
 
 def course_count():
@@ -59,27 +130,37 @@ def main():
     before = course_count()
     print(f"Current catalog: {before} courses in data/parsed/FA26/")
 
-    # 1. capture the session — browser opens; user logs in and CLOSES it.
-    print("\n>>> A browser is opening. Log in (UCSD SSO + Duo), then just "
-          "CLOSE the window.\n>>> You do NOT need to browse anywhere — ignore "
-          "any tab that flickers.\n")
-    r = sh(PY, ROOT / "tss" / "connect.py", check=False)
-    if r.returncode != 0:
-        print("\nLogin/capture step failed — aborting, nothing changed.")
+    # 1. capture the session — browser opens; user only has to LOG IN.
+    print("\n>>> A browser is opening. Just log in (UCSD SSO + Duo).\n"
+          ">>> You do NOT need to browse anywhere or close the window — "
+          "I take over automatically once you're in.\n")
+    login = capture_session()
+    if login is None:
+        print("\nLogin was not detected (window closed or timed out) — "
+              "aborting, nothing changed.")
         return 1
 
-    # 2. pull the FA26 data straight from OData (no browsing needed)
-    r = sh(PY, ROOT / "tss" / "fetch_soc.py", check=False)
-    if r.returncode != 0:
-        print("\nDirect OData pull failed (did you log in before closing the "
-              "window?). Catalog left unchanged.")
-        return 1
+    try:
+        # 2. pull FA26 by hijacking the SoC app's own $batch. (The old direct
+        #    OData GET in tss/fetch_soc.py now 403s — TSS only serves the
+        #    con_module entities through the app's multipart batch. See
+        #    tss/pull_soc_batch.py.)
+        r = sh(PY, ROOT / "tss" / "pull_soc_batch.py", check=False)
+        if r.returncode != 0:
+            print("\nSoC $batch pull failed. Catalog left unchanged.")
+            return 1
 
-    # 3. map the dumps into the parsed catalog
-    r = sh(PY, ROOT / "tss" / "import_fa26.py", check=False)
-    if r.returncode != 0:
-        print("\nImport failed — catalog left unchanged.")
-        return 1
+        # 3. map the dumps into the parsed catalog
+        r = sh(PY, ROOT / "tss" / "import_fa26.py", check=False)
+        if r.returncode != 0:
+            print("\nImport failed — catalog left unchanged.")
+            return 1
+    finally:
+        # We have the data; release the browser so nothing lingers.
+        try:
+            login.terminate()
+        except Exception:
+            pass
 
     after = course_count()
     print(f"\nCatalog after refresh: {after} courses ({after - before:+d}).")
