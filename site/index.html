@@ -2,142 +2,245 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>We've moved to TritonPlan — Unofficial UCSD Planner</title>
+<title>Unofficial UCSD Course Planner (WebReg-style)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="The Unofficial UCSD Course Planner has grown into TritonPlan — a full personalized planner with degree audit, degree planner, GPA calculator, and the classic WebReg emulator. Not affiliated with UC San Diego.">
-<meta property="og:title" content="We've moved to TritonPlan">
-<meta property="og:description" content="The Unofficial UCSD Course Planner is now TritonPlan — sign in with your UCSD Google account for degree audit, degree planner, GPA calculator, catalog, and the classic WebReg emulator.">
+<meta name="description" content="Unofficial, student-made course planner for UC San Diego — plan your Fall 2026 schedule the classic WebReg way. Not affiliated with or endorsed by UC San Diego.">
+<meta property="og:title" content="Unofficial UCSD Course Planner">
+<meta property="og:description" content="Unofficial, student-made tool to plan your UC San Diego Fall 2026 schedule the classic WebReg way — courses, professors, times, rooms, seats. Not affiliated with UC San Diego.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://tritonplan.com">
+<meta property="og:url" content="https://sahirssharma.github.io/WebReg-Course-Planner/">
+<meta property="og:image" content="https://sahirssharma.github.io/WebReg-Course-Planner/img/og-preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Unofficial UCSD Course Planner">
+<meta name="twitter:description" content="Unofficial, student-made tool to plan your UC San Diego schedule the classic WebReg way. Not affiliated with UC San Diego.">
+<meta name="twitter:image" content="https://sahirssharma.github.io/WebReg-Course-Planner/img/og-preview.png">
+<link rel="stylesheet" href="css/webreg.css?v=aadfe542">
 <!-- privacy-friendly page-open analytics (GoatCounter) -->
 <script data-goatcounter="https://ssssss.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
-<style>
-  :root{
-    --navy:#14425C; --deep:#0A4A65; --teal:#1A719C; --gold:#FFCD00; --light:#7FB2C6;
-    --ink:#0e2733; --muted:#5b7280; --paper:#f4f7f9;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    color:var(--ink); background:var(--paper);
-    -webkit-font-smoothing:antialiased; line-height:1.55;
-  }
-  a{color:var(--teal)}
-  .topbar{
-    background:var(--navy); color:#fff; font-size:12px; letter-spacing:.02em;
-    display:flex; justify-content:space-between; align-items:center;
-    padding:8px 18px;
-  }
-  .topbar .un{opacity:.7; font-style:italic; margin-right:6px}
-  .disclaimer{
-    background:#eaf0f3; color:#3a5563; font-size:12px; text-align:center;
-    padding:7px 16px; border-bottom:1px solid #d6e0e6;
-  }
-  .wrap{max-width:760px; margin:0 auto; padding:0 22px}
-  .hero{text-align:center; padding:62px 0 38px}
-  .eyebrow{
-    text-transform:uppercase; letter-spacing:.16em; font-size:12px; font-weight:700;
-    color:var(--teal); margin-bottom:18px;
-  }
-  h1{
-    font-size:clamp(30px,6vw,46px); line-height:1.1; margin:0 0 16px; color:var(--navy);
-    font-weight:800; letter-spacing:-.01em;
-  }
-  .lede{font-size:clamp(16px,2.4vw,19px); color:var(--muted); max-width:560px; margin:0 auto 34px}
-  .cta{
-    display:inline-block; text-decoration:none; font-weight:800; font-size:20px;
-    color:var(--navy); background:var(--gold);
-    padding:18px 40px; border-radius:12px;
-    box-shadow:0 10px 24px rgba(20,66,92,.22), inset 0 -3px 0 rgba(0,0,0,.12);
-    transition:transform .12s ease, box-shadow .12s ease;
-  }
-  .cta:hover{transform:translateY(-2px); box-shadow:0 16px 30px rgba(20,66,92,.28), inset 0 -3px 0 rgba(0,0,0,.12)}
-  .cta .arrow{margin-left:8px}
-  .cta-sub{font-size:13px; color:var(--muted); margin-top:14px}
-  .card{
-    background:#fff; border:1px solid #e0e8ec; border-radius:16px;
-    padding:30px 32px; margin:14px 0; box-shadow:0 2px 10px rgba(20,66,92,.05);
-  }
-  .card h2{font-size:20px; margin:0 0 6px; color:var(--navy)}
-  .card .sub{color:var(--muted); font-size:14px; margin:0 0 18px}
-  ul.benefits{list-style:none; margin:0; padding:0; display:grid; gap:12px}
-  ul.benefits li{position:relative; padding-left:30px; font-size:15px}
-  ul.benefits li::before{
-    content:"✓"; position:absolute; left:0; top:0;
-    width:20px; height:20px; border-radius:50%;
-    background:var(--teal); color:#fff; font-size:12px; font-weight:800;
-    display:flex; align-items:center; justify-content:center;
-  }
-  ul.benefits b{color:var(--ink)}
-  .thanks{text-align:center; padding:6px 0 4px}
-  .thanks h2{color:var(--navy)}
-  .thanks p{color:var(--muted); max-width:560px; margin:8px auto 0}
-  .footcta{text-align:center; margin:34px 0 10px}
-  footer{
-    text-align:center; color:#7a8f9a; font-size:12px;
-    padding:34px 22px 46px; border-top:1px solid #e0e8ec; margin-top:30px;
-  }
-  footer a{color:#5f7d8b}
-</style>
 </head>
 <body>
 
-  <div class="topbar">
-    <span><span class="un">Unofficial</span>UC San Diego</span>
-    <span>TritonPlan</span>
+<!-- ===== MY TRITONLINK chrome ===== -->
+<div class="tl-banner">
+  <span class="tl-brand">Functional Course Planner not TSS Slop</span>
+  <span class="tl-wordmark"><span class="tl-unofficial">Unofficial</span>UC San Diego</span>
+</div>
+<div class="disclaimer-strip">
+  Unofficial, student-made planning tool &mdash; <b>not affiliated with, endorsed by, or operated by UC San Diego.</b>
+  &ldquo;UC San Diego,&rdquo; &ldquo;Triton,&rdquo; and &ldquo;WebReg&rdquo; are marks of the university, used here only to describe what this tool helps with.
+</div>
+<div class="tl-shard">
+  <svg viewBox="0 0 1200 74" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <polygon points="380,0 560,0 470,58" fill="#14425C" opacity="0.85"/>
+    <polygon points="470,0 700,0 610,46" fill="#1A719C" opacity="0.55"/>
+    <polygon points="540,0 640,52 760,0" fill="#0A4A65" opacity="0.75"/>
+    <polygon points="600,0 830,0 730,64" fill="#FFCD00" opacity="0.55"/>
+    <polygon points="700,0 900,0 800,40" fill="#1A719C" opacity="0.45"/>
+    <polygon points="300,0 430,0 380,34" fill="#FFCD00" opacity="0.4"/>
+    <polygon points="760,0 960,30 900,0" fill="#14425C" opacity="0.6"/>
+    <polygon points="430,0 520,40 470,0" fill="#7FB2C6" opacity="0.6"/>
+    <polygon points="820,0 1010,0 930,36" fill="#7FB2C6" opacity="0.45"/>
+    <polygon points="240,0 340,0 300,22" fill="#1A719C" opacity="0.3"/>
+    <polygon points="930,0 1060,0 1000,22" fill="#FFCD00" opacity="0.3"/>
+    <rect x="0" y="0" width="1200" height="74" fill="url(#fade)"/>
+    <defs>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+        <stop offset="1" stop-color="#ffffff" stop-opacity="1"/>
+      </linearGradient>
+    </defs>
+  </svg>
+</div>
+
+<div class="page">
+
+  <!-- ===== screen 1: term select ===== -->
+  <div id="screen-term">
+    <h1 class="page-title">Course Enrollment</h1>
+    <div class="term-pick">
+      <b>Select a term to begin:</b>
+      <select id="landing-term"></select>
+      <button class="btn" id="btn-go">Go</button>
+    </div>
   </div>
-  <div class="disclaimer">
-    Unofficial, student-made planning tool &mdash; <b>not affiliated with, endorsed by, or operated by UC San Diego.</b>
-  </div>
 
-  <div class="wrap">
-
-    <section class="hero">
-      <div class="eyebrow">The course planner has grown up</div>
-      <h1>We've moved to&nbsp;TritonPlan</h1>
-      <p class="lede">
-        The Unofficial UCSD Course Planner is now a full, personalized planner for your degree &mdash;
-        not just a schedule mockup. Everything you liked is still here, plus a lot more.
-      </p>
-      <a class="cta" href="https://tritonplan.com">Go to tritonplan.com <span class="arrow">&rarr;</span></a>
-      <div class="cta-sub">Free &middot; sign in with your <b>@ucsd.edu</b> Google account</div>
-    </section>
-
-    <section class="card">
-      <h2>What you get when you sign in</h2>
-      <p class="sub">Your own academic data, read with your own login and kept to your account.</p>
-      <ul class="benefits">
-        <li><b>Degree Audit</b> — your major &amp; college requirements, earned vs. still needed.</li>
-        <li><b>Degree Planner</b> — plan quarter-by-quarter, automatically checked against prerequisites.</li>
-        <li><b>General Catalog</b> — search Fall 2026 courses with your own prereq status shown.</li>
-        <li><b>GPA Calculator</b> — project your GPA or find the grades you need.</li>
-        <li><b>Academic History</b> — import every course you've taken and what's in progress.</li>
-        <li><b>The classic WebReg emulator</b> — still included, exactly the way you remember it.</li>
-      </ul>
-    </section>
-
-    <section class="thanks card">
-      <h2>Thank you 🙏</h2>
-      <p>
-        To everyone who used the course planner, sent feedback, and chipped in to support the project &mdash;
-        <b>you built this.</b> Your suggestions are the reason TritonPlan exists. The best way to keep it going
-        is to sign in, use it, and tell me what to fix next.
-      </p>
-    </section>
-
-    <div class="footcta">
-      <a class="cta" href="https://tritonplan.com">Open TritonPlan <span class="arrow">&rarr;</span></a>
+  <!-- ===== screen 2: main app ===== -->
+  <div id="screen-main" hidden>
+    <div class="hdr-row">
+      <h1 class="page-title">Course Enrollment</h1>
+      <div class="hdr-links">
+        <a id="lnk-appt">Appointment time</a><span class="sep">|</span><a
+          id="lnk-enrinfo"
+          href="https://students.ucsd.edu/academics/enrollment/calendars/index.html"
+          target="_blank" rel="noopener">Enrollment Information <span class="popout"></span></a>
+        <span class="sep">|</span>
+        <select id="term-switch"></select>
+      </div>
     </div>
 
+    <div class="status-line" id="status-line">
+      Plan your courses — build and compare schedules. Everything is saved to your local schedule only.
+    </div>
+
+    <div id="conflict-banner" hidden></div>
+
+    <!-- search -->
+    <div class="search-panel">
+      <div class="search-row">
+        <div class="search-label">
+          <b>Search for Classes:</b><br>
+          <a id="lnk-adv">Advanced Search</a>
+        </div>
+        <span class="ac-wrap">
+          <input id="q" placeholder="(e.g., BILD, BILD 3 or computer 3 )" autocomplete="off">
+          <div id="ac" class="ac" hidden></div>
+        </span>
+        <button class="btn" id="btn-search">Search</button>
+      </div>
+
+      <div id="adv" class="adv" hidden>
+        <table class="adv-left"><tbody>
+          <tr>
+            <td class="lab">Subject:</td>
+            <td><div class="tokbox" id="subj-box" tabindex="0"><span class="placeholder">Select one or more</span></div></td>
+          </tr>
+          <tr><td class="lab">Course:</td>
+              <td><input type="text" id="f-courseno" placeholder="Enter one or more"></td></tr>
+          <tr><td class="lab">Instructor:</td>
+              <td><input type="text" id="f-instructor" placeholder="Last, First"></td></tr>
+          <tr><td class="lab">Title:</td>
+              <td><input type="text" id="f-title"></td></tr>
+          <tr><td class="lab">Section ID:</td>
+              <td><input type="text" id="f-sectionid" placeholder="Enter one or more"></td></tr>
+        </tbody></table>
+
+        <div class="adv-right">
+          <div class="so-hd">Show only</div>
+          <table><tbody>
+            <tr><td class="rowlab">Lower:</td>
+                <td><label><input type="checkbox" class="rng" value="1-99">1-99</label></td>
+                <td><label><input type="checkbox" class="rng" value="87,90">87,90</label></td>
+                <td><label><input type="checkbox" class="rng" value="99">99</label></td></tr>
+            <tr><td class="rowlab">Upper:</td>
+                <td><label><input type="checkbox" class="rng" value="100-198">100-198</label></td>
+                <td><label><input type="checkbox" class="rng" value="195">195</label></td>
+                <td><label><input type="checkbox" class="rng" value="199">199</label></td></tr>
+            <tr><td class="rowlab">Graduate:</td>
+                <td><label><input type="checkbox" class="rng" value="200-297">200-297</label></td>
+                <td><label><input type="checkbox" class="rng" value="298">298</label></td>
+                <td><label><input type="checkbox" class="rng" value="299">299</label></td></tr>
+            <tr><td></td>
+                <td><label><input type="checkbox" class="rng" value="300+">300+</label></td>
+                <td><label><input type="checkbox" class="rng" value="400+">400+</label></td>
+                <td><label><input type="checkbox" class="rng" value="500+">500+</label></td></tr>
+          </tbody></table>
+          <div class="adv-days" style="margin-top:6px;">
+            <b>Days:</b>
+            <label><input type="checkbox" class="day" value="M">M</label>
+            <label><input type="checkbox" class="day" value="Tu">Tu</label>
+            <label><input type="checkbox" class="day" value="W">W</label>
+            <label><input type="checkbox" class="day" value="Th">Th</label>
+            <label><input type="checkbox" class="day" value="F">F</label>
+            <label><input type="checkbox" class="day" value="Sa">Sa</label>
+            <label><input type="checkbox" class="day" value="Su">Su</label>
+          </div>
+          <div class="adv-times">
+            <b>Start:</b> <select id="f-start"></select>
+            <b>End:</b> <select id="f-end"></select>
+          </div>
+          <div class="adv-open">
+            <b>Only show sections with seats available:</b>
+            <input type="checkbox" id="f-open">
+          </div>
+        </div>
+        <div class="adv-btns">
+          <button class="btn" id="btn-reset">Reset</button>
+          <button class="btn" id="btn-search2">Search</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- results -->
+    <div id="results-region" class="results-region" hidden>
+      <div class="results-toggle-row"><a id="lnk-toggle-results">Hide search result</a></div>
+      <div id="results-inner">
+        <div class="results-toolbar">
+          Show <select id="page-size">
+            <option>10</option><option>25</option><option>50</option><option>100</option>
+          </select>
+          <span id="pager"></span>
+          <span class="found" id="found-count"></span>
+        </div>
+        <div class="results-panel">
+          <div class="results-panel-hd">Search results and action
+            <span class="round-toggle" id="panel-collapse">&#8211;</span>
+          </div>
+          <div id="results-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- my schedule -->
+    <div class="sched-hdr">
+      <span class="sched-units" id="sched-units" hidden
+            title="Sum of units for the classes on this schedule (events excluded)"></span>
+      <b>My schedule:</b>
+      <select id="sched-name" title="Switch, create, copy, rename, or delete a schedule"></select>
+    </div>
+    <div class="sched-area" id="sched-area">
+      <div class="sched-tabs">
+        <span class="tab active" data-view="list">List</span>
+        <span class="tab" data-view="calendar">Calendar</span>
+        <span class="tab" data-view="finals">Finals</span>
+        <span class="tab" data-view="map">Map</span>
+        <span class="sched-links">
+          <a id="lnk-add-event">Add Event</a> |
+          <a id="lnk-print">Print Schedule</a> |
+          <a id="lnk-books" href="https://ucsandiegobookstore.com/" target="_blank"
+             rel="noopener">View Book List <span class="popout popout-w"></span></a>
+        </span>
+      </div>
+      <div id="view-list"></div>
+      <div id="view-calendar" hidden></div>
+      <div id="view-finals" hidden></div>
+      <div id="view-map" hidden></div>
+    </div>
   </div>
 
-  <footer>
-    Unofficial &middot; not affiliated with, endorsed by, or operated by UC San Diego &middot; does not perform enrollment.<br>
-    &ldquo;UC San Diego,&rdquo; &ldquo;Triton,&rdquo; and &ldquo;WebReg&rdquo; are marks of the university, used here only to describe what this tool helps with.
-    <div style="margin-top:8px">&rarr; <a href="https://tritonplan.com">tritonplan.com</a></div>
-  </footer>
+  <div class="planner-note">Unofficial, independent student tool &mdash; not affiliated with, endorsed by, or connected to UC San Diego, and not connected to UCSD registration.
+    <span class="data-asof">Course data as of July 23, 2026.</span></div>
+  <div class="copyright-note">&copy; 2026 Sahir Sharma &middot; <a
+    href="https://github.com/SahirSSharma/WebReg-Course-Planner/blob/main/LICENSE"
+    target="_blank" rel="noopener">MIT License</a> &middot; <a
+    href="https://github.com/SahirSSharma/WebReg-Course-Planner"
+    target="_blank" rel="noopener">View source on GitHub</a></div>
+  <div class="feedback-note">Feedback or bugs? <a
+    href="mailto:sas063@ucsd.edu?subject=WebReg%20Course%20Planner%20feedback">sas063@ucsd.edu</a></div>
+</div>
 
+
+<div id="modal-root" hidden></div>
+
+<!-- ===== support / tip corner (bottom-right) ===== -->
+<div id="tip-jar" class="tip-jar">
+  <div class="tip-bar" id="tip-bar">
+    <span>💸 Support the project</span><span class="tip-caret" id="tip-caret">▾</span>
+  </div>
+  <div class="tip-body" id="tip-body">
+    <img class="tip-meme" src="img/meme.gif" alt=""
+         onerror="this.style.display='none'">
+    <div class="tip-note">100% of tips go right back into improving WebReg.</div>
+    <img class="tip-qr" src="img/venmo-qr.png"
+         alt="Venmo @Sahir-Sharma — scan to pay">
+    <div class="tip-zelle"><b>Zelle</b> &middot; 650-334-7008</div>
+  </div>
+</div>
+
+<script>window.__DATA_V="ee8b9567";</script>
+<script src="js/localdb.js?v=fe60c263"></script>
+<script src="js/webreg.js?v=6ad71985"></script>
 </body>
 </html>
