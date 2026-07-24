@@ -2,30 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Unofficial UCSD Course Planner (WebReg-style)</title>
+<title>UCSD Course Planner — now on TritonPlan</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Unofficial, student-made course planner for UC San Diego — plan your Fall 2026 schedule the classic WebReg way. Not affiliated with or endorsed by UC San Diego.">
-<meta property="og:title" content="Unofficial UCSD Course Planner">
-<meta property="og:description" content="Unofficial, student-made tool to plan your UC San Diego Fall 2026 schedule the classic WebReg way — courses, professors, times, rooms, seats. Not affiliated with UC San Diego.">
+<meta name="description" content="The Unofficial UCSD Course Planner has moved to TritonPlan — the same schedule planning plus your degree audit, a quarter-by-quarter planner, catalog, and GPA tools. Not affiliated with UC San Diego.">
+<meta property="og:title" content="UCSD Course Planner — now on TritonPlan">
+<meta property="og:description" content="The course planner has moved to TritonPlan. Sign in with your UCSD Google account for the schedule planner, degree audit, degree planner, catalog, and GPA tools.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://sahirssharma.github.io/WebReg-Course-Planner/">
-<meta property="og:image" content="https://sahirssharma.github.io/WebReg-Course-Planner/img/og-preview.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Unofficial UCSD Course Planner">
-<meta name="twitter:description" content="Unofficial, student-made tool to plan your UC San Diego schedule the classic WebReg way. Not affiliated with UC San Diego.">
-<meta name="twitter:image" content="https://sahirssharma.github.io/WebReg-Course-Planner/img/og-preview.png">
+<meta property="og:url" content="https://tritonplan.com">
 <link rel="stylesheet" href="/static/css/webreg.css">
 <!-- privacy-friendly page-open analytics (GoatCounter) -->
 <script data-goatcounter="https://ssssss.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
+<style>
+  .mig{ max-width:760px; margin:0 auto; }
+  .mig-intro{ font-size:13px; line-height:1.7; color:#333; margin:12px 0 0; }
+  .mig-cta{ text-align:center; margin:60px 0 72px; }
+  .go-btn{
+    display:inline-block; text-decoration:none;
+    font-family:Arial,Helvetica,sans-serif; font-weight:bold; font-size:27px;
+    color:#0A4A65; background:linear-gradient(#FFE05C,#FFCD00 55%,#EFB600);
+    border:1px solid #b98f0a; border-radius:4px; padding:17px 46px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.75), 0 2px 3px rgba(0,0,0,.28);
+  }
+  .go-btn:hover{ background:linear-gradient(#FFD940,#F7C400 55%,#E4AD00); }
+  .go-btn:active{ box-shadow:inset 0 2px 3px rgba(0,0,0,.25); }
+  .go-sub{ margin-top:13px; font-size:11px; color:#666; }
+  .go-url{ color:#1A719C; font-weight:bold; text-decoration:none; }
+  .mig-panel{ margin:22px 0; box-shadow:2px 3px 9px rgba(0,0,0,.12); }
+  .mig-hd{ background:#0A4A65; color:#fff; font-size:12px; font-weight:bold; letter-spacing:.3px; padding:6px 12px; }
+  .feat{ width:100%; border-collapse:collapse; font-size:12px; background:#fff;
+    border:1px solid #c7c7c7; border-top:none; }
+  .feat td{ padding:8px 12px; border-top:1px solid #e4e4e4; vertical-align:top; line-height:1.5; }
+  .feat tr:first-child td{ border-top:none; }
+  .feat tr:nth-child(even){ background:#f6f9fa; }
+  .feat .ft-name{ width:200px; font-weight:bold; color:#0A4A65; white-space:nowrap; }
+  .mig-soon{ border:1px solid #c7c7c7; border-top:none; background:#fbf6e6;
+    color:#0A4A65; font-size:13px; line-height:1.6; text-align:center; padding:11px 14px; }
+  .mig-soon .soon-hl{ color:#CB6C12; }
+  .mig-note{ border:1px solid #c7c7c7; border-top:none; background:#fff;
+    padding:15px 16px; font-size:12.5px; line-height:1.75; color:#333; }
+  .mig-note b{ color:#0A4A65; }
+  .mig-note p{ margin:0 0 10px; }
+  .mig-note p:last-child{ margin-bottom:0; }
+</style>
 </head>
 <body>
 
 <!-- ===== MY TRITONLINK chrome ===== -->
 <div class="tl-banner">
-  <span class="tl-brand">Functional Course Planner not TSS Slop</span>
+  <span class="tl-brand">UCSD Course Planner</span>
   <span class="tl-wordmark"><span class="tl-unofficial">Unofficial</span>UC San Diego</span>
 </div>
 <div class="disclaimer-strip">
@@ -56,189 +81,71 @@
 </div>
 
 <div class="page">
+  <div class="mig">
 
-  <!-- ===== screen 1: term select ===== -->
-  <div id="screen-term">
-    <h1 class="page-title">Course Enrollment</h1>
-    <div class="term-pick">
-      <b>Select a term to begin:</b>
-      <select id="landing-term"></select>
-      <button class="btn" id="btn-go">Go</button>
+    <h1 class="page-title">This planner has moved to TritonPlan</h1>
+    <p class="mig-intro">
+      Thanks for using the course planner. Big news: <b>UC San Diego is retiring My TritonLink.</b> As of July 2026
+      it's being replaced by the new Triton Student System (TSS), and in the move a lot of the tools students actually
+      lean on are being <b>cut</b> &mdash; <b>WebReg and its planner are going away, the GPA Calculator is going away,
+      and courses.ucsd.edu is going away.</b> Incoming Fall 2026 students won't get My TritonLink at all.
+    </p>
+    <p class="mig-intro">
+      <b>TritonPlan is the permanent home for all of that.</b> The WebReg-style schedule planner, your degree audit, a
+      prerequisite-checked degree planner, the full course catalog, and a GPA calculator &mdash; kept in one place,
+      for good.
+    </p>
+
+    <div class="mig-cta">
+      <a class="go-btn" href="https://tritonplan.com">Go to TritonPlan &raquo;</a>
+      <div class="go-sub">
+        <a class="go-url" href="https://tritonplan.com">tritonplan.com</a>
+        &nbsp;&middot;&nbsp; free &nbsp;&middot;&nbsp; sign in with your @ucsd.edu account
+      </div>
     </div>
+
+    <div class="mig-panel">
+      <div class="mig-hd">WHAT'S ON TRITONPLAN</div>
+      <table class="feat"><tbody>
+        <tr><td class="ft-name">Schedule Planner</td><td>The classic course planner you've been using &mdash; still here, unchanged.</td></tr>
+        <tr><td class="ft-name">Degree Audit</td><td>Your major and college requirements, laid out as earned versus still needed.</td></tr>
+        <tr><td class="ft-name">Degree Planner</td><td>Map out your quarters and it checks the prerequisites for you as you go.</td></tr>
+        <tr><td class="ft-name">General Catalog</td><td>Search Fall 2026 courses with your own prerequisite status shown on each one.</td></tr>
+        <tr><td class="ft-name">GPA Calculator</td><td>Project your GPA, or work backward to the grades you'd need this quarter.</td></tr>
+        <tr><td class="ft-name">Academic History</td><td>Import your transcript once and see everything you've taken and what's in progress.</td></tr>
+      </tbody></table>
+      <div class="mig-soon">And this is just the start &mdash; <b>tons of new <span class="soon-hl">actually useful</span> features are coming very soon.</b></div>
+    </div>
+
+    <div class="mig-panel">
+      <div class="mig-hd">A NOTE OF THANKS</div>
+      <div class="mig-note">
+        <p>
+          To everyone who chipped in to keep this project going &mdash; <b>thank you, sincerely.</b>
+          The donations genuinely matter, and I want to be straight about where they go:
+          <b>100% of them go back into TritonPlan.</b> Nothing else.
+        </p>
+        <p>
+          That means keeping the course data fresh every quarter, building out new tools, covering the
+          hosting, and keeping the whole thing free for students. This started as a small course planner
+          and turned into something a lot more useful because people actually backed it.
+        </p>
+        <p>
+          The best thing you can do now is sign in, use it, and tell me what to fix next.
+        </p>
+      </div>
+    </div>
+
   </div>
 
-  <!-- ===== screen 2: main app ===== -->
-  <div id="screen-main" hidden>
-    <div class="hdr-row">
-      <h1 class="page-title">Course Enrollment</h1>
-      <div class="hdr-links">
-        <a id="lnk-appt">Appointment time</a><span class="sep">|</span><a
-          id="lnk-enrinfo"
-          href="https://students.ucsd.edu/academics/enrollment/calendars/index.html"
-          target="_blank" rel="noopener">Enrollment Information <span class="popout"></span></a>
-        <span class="sep">|</span>
-        <select id="term-switch"></select>
-      </div>
+  <div class="page-footer">
+    <div>
+      Unofficial &middot; not affiliated with, endorsed by, or operated by UC San Diego &middot; does not perform enrollment.<br>
+      &rarr; <a href="https://tritonplan.com">tritonplan.com</a>
     </div>
-
-    <div class="status-line" id="status-line">
-      Plan your courses — build and compare schedules. Everything is saved to your local schedule only.
-    </div>
-
-    <div id="conflict-banner" hidden></div>
-
-    <!-- search -->
-    <div class="search-panel">
-      <div class="search-row">
-        <div class="search-label">
-          <b>Search for Classes:</b><br>
-          <a id="lnk-adv">Advanced Search</a>
-        </div>
-        <span class="ac-wrap">
-          <input id="q" placeholder="(e.g., BILD, BILD 3 or computer 3 )" autocomplete="off">
-          <div id="ac" class="ac" hidden></div>
-        </span>
-        <button class="btn" id="btn-search">Search</button>
-      </div>
-
-      <div id="adv" class="adv" hidden>
-        <table class="adv-left"><tbody>
-          <tr>
-            <td class="lab">Subject:</td>
-            <td><div class="tokbox" id="subj-box" tabindex="0"><span class="placeholder">Select one or more</span></div></td>
-          </tr>
-          <tr><td class="lab">Course:</td>
-              <td><input type="text" id="f-courseno" placeholder="Enter one or more"></td></tr>
-          <tr><td class="lab">Instructor:</td>
-              <td><input type="text" id="f-instructor" placeholder="Last, First"></td></tr>
-          <tr><td class="lab">Title:</td>
-              <td><input type="text" id="f-title"></td></tr>
-          <tr><td class="lab">Section ID:</td>
-              <td><input type="text" id="f-sectionid" placeholder="Enter one or more"></td></tr>
-        </tbody></table>
-
-        <div class="adv-right">
-          <div class="so-hd">Show only</div>
-          <table><tbody>
-            <tr><td class="rowlab">Lower:</td>
-                <td><label><input type="checkbox" class="rng" value="1-99">1-99</label></td>
-                <td><label><input type="checkbox" class="rng" value="87,90">87,90</label></td>
-                <td><label><input type="checkbox" class="rng" value="99">99</label></td></tr>
-            <tr><td class="rowlab">Upper:</td>
-                <td><label><input type="checkbox" class="rng" value="100-198">100-198</label></td>
-                <td><label><input type="checkbox" class="rng" value="195">195</label></td>
-                <td><label><input type="checkbox" class="rng" value="199">199</label></td></tr>
-            <tr><td class="rowlab">Graduate:</td>
-                <td><label><input type="checkbox" class="rng" value="200-297">200-297</label></td>
-                <td><label><input type="checkbox" class="rng" value="298">298</label></td>
-                <td><label><input type="checkbox" class="rng" value="299">299</label></td></tr>
-            <tr><td></td>
-                <td><label><input type="checkbox" class="rng" value="300+">300+</label></td>
-                <td><label><input type="checkbox" class="rng" value="400+">400+</label></td>
-                <td><label><input type="checkbox" class="rng" value="500+">500+</label></td></tr>
-          </tbody></table>
-          <div class="adv-days" style="margin-top:6px;">
-            <b>Days:</b>
-            <label><input type="checkbox" class="day" value="M">M</label>
-            <label><input type="checkbox" class="day" value="Tu">Tu</label>
-            <label><input type="checkbox" class="day" value="W">W</label>
-            <label><input type="checkbox" class="day" value="Th">Th</label>
-            <label><input type="checkbox" class="day" value="F">F</label>
-            <label><input type="checkbox" class="day" value="Sa">Sa</label>
-            <label><input type="checkbox" class="day" value="Su">Su</label>
-          </div>
-          <div class="adv-times">
-            <b>Start:</b> <select id="f-start"></select>
-            <b>End:</b> <select id="f-end"></select>
-          </div>
-          <div class="adv-open">
-            <b>Only show sections with seats available:</b>
-            <input type="checkbox" id="f-open">
-          </div>
-        </div>
-        <div class="adv-btns">
-          <button class="btn" id="btn-reset">Reset</button>
-          <button class="btn" id="btn-search2">Search</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- results -->
-    <div id="results-region" class="results-region" hidden>
-      <div class="results-toggle-row"><a id="lnk-toggle-results">Hide search result</a></div>
-      <div id="results-inner">
-        <div class="results-toolbar">
-          Show <select id="page-size">
-            <option>10</option><option>25</option><option>50</option><option>100</option>
-          </select>
-          <span id="pager"></span>
-          <span class="found" id="found-count"></span>
-        </div>
-        <div class="results-panel">
-          <div class="results-panel-hd">Search results and action
-            <span class="round-toggle" id="panel-collapse">&#8211;</span>
-          </div>
-          <div id="results-body"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- my schedule -->
-    <div class="sched-hdr">
-      <span class="sched-units" id="sched-units" hidden
-            title="Sum of units for the classes on this schedule (events excluded)"></span>
-      <b>My schedule:</b>
-      <select id="sched-name" title="Switch, create, copy, rename, or delete a schedule"></select>
-    </div>
-    <div class="sched-area" id="sched-area">
-      <div class="sched-tabs">
-        <span class="tab active" data-view="list">List</span>
-        <span class="tab" data-view="calendar">Calendar</span>
-        <span class="tab" data-view="finals">Finals</span>
-        <span class="tab" data-view="map">Map</span>
-        <span class="sched-links">
-          <a id="lnk-add-event">Add Event</a> |
-          <a id="lnk-print">Print Schedule</a> |
-          <a id="lnk-books" href="https://ucsandiegobookstore.com/" target="_blank"
-             rel="noopener">View Book List <span class="popout popout-w"></span></a>
-        </span>
-      </div>
-      <div id="view-list"></div>
-      <div id="view-calendar" hidden></div>
-      <div id="view-finals" hidden></div>
-      <div id="view-map" hidden></div>
-    </div>
-  </div>
-
-  <div class="planner-note">Unofficial, independent student tool &mdash; not affiliated with, endorsed by, or connected to UC San Diego, and not connected to UCSD registration.
-    <span class="data-asof">Course data as of {{ data_asof }}.</span></div>
-  <div class="copyright-note">&copy; 2026 Sahir Sharma &middot; <a
-    href="https://github.com/SahirSSharma/WebReg-Course-Planner/blob/main/LICENSE"
-    target="_blank" rel="noopener">MIT License</a> &middot; <a
-    href="https://github.com/SahirSSharma/WebReg-Course-Planner"
-    target="_blank" rel="noopener">View source on GitHub</a></div>
-  <div class="feedback-note">Feedback or bugs? <a
-    href="mailto:sas063@ucsd.edu?subject=WebReg%20Course%20Planner%20feedback">sas063@ucsd.edu</a></div>
-</div>
-
-
-<div id="modal-root" hidden></div>
-
-<!-- ===== support / tip corner (bottom-right) ===== -->
-<div id="tip-jar" class="tip-jar">
-  <div class="tip-bar" id="tip-bar">
-    <span>💸 Support the project</span><span class="tip-caret" id="tip-caret">▾</span>
-  </div>
-  <div class="tip-body" id="tip-body">
-    <img class="tip-meme" src="/static/img/meme.gif" alt=""
-         onerror="this.style.display='none'">
-    <div class="tip-note">100% of tips go right back into improving WebReg.</div>
-    <img class="tip-qr" src="/static/img/venmo-qr.png"
-         alt="Venmo @Sahir-Sharma — scan to pay">
-    <div class="tip-zelle"><b>Zelle</b> &middot; 650-334-7008</div>
+    <div class="footer-wordmark">UC San Diego</div>
   </div>
 </div>
 
-<script src="/static/js/webreg.js"></script>
 </body>
 </html>
